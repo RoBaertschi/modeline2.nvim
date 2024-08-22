@@ -20,11 +20,11 @@ M.contains = function(string, contains)
 	return false, -1
 end
 
----@class Config
+---@class modeline2.Config
 ---@field key_value_seperator? string  Default is "=", should only be one char long
 ---@field custom_functions? {[string]: function} Functions that can be used with the "lua" action
 
----@param config? Config
+---@param config? modeline2.Config
 M.setup = function(config)
 	if config == nil then
 		return
@@ -52,7 +52,7 @@ M.setup = function(config)
 	})
 end
 
----@type {[string]: ActionType}
+---@type {[string]: modeline2.ActionType}
 local with_value_actions = {
 	ft = "filetype",
 	tw = "textwidth",
@@ -69,7 +69,7 @@ local with_value_actions = {
 	lua = "lua",
 }
 
----@type {[string]: ActionType}
+---@type {[string]: modeline2.ActionType}
 local no_value_actions = {
 	et = "expandtab",
 	noet = "noexpandtab",
@@ -85,9 +85,9 @@ local no_value_actions = {
 	norightleft = "norightleft",
 }
 
----@alias ActionType "lua"|"filetype"|"textwidth"|"softtabstop"|"tabstop"|"shiftwidth"|"expandtab"|"noexpandtab"|"foldmethod"|"readonly"|"noreadonly"|"rightleft"|"norightleft"
----@class Action
----@field type ActionType
+---@alias modeline2.ActionType "lua"|"filetype"|"textwidth"|"softtabstop"|"tabstop"|"shiftwidth"|"expandtab"|"noexpandtab"|"foldmethod"|"readonly"|"noreadonly"|"rightleft"|"norightleft"
+---@class modeline2.Action
+---@field type modeline2.ActionType
 ---@field value string?
 
 --- parse "key=value "
@@ -141,14 +141,14 @@ end
 
 ---Determine if the provided string contains modeline2 settings.
 ---@param string string
----@return boolean, Action[]
+---@return boolean, modeline2.Action[]
 M.get_modeline_string = function(string)
 	local contained, pos = M.contains(string, "ml2")
 	if not contained or pos == -1 then
 		return false, {}
 	end
 
-	---@type Action[]
+	---@type modeline2.Action[]
 	local found_actions = {}
 	local found_end = false
 	local cur_pos = pos + #"ml2"
@@ -197,7 +197,7 @@ M.get_modeline_string = function(string)
 	return true, found_actions
 end
 
----@param actions Action[]
+---@param actions modeline2.Action[]
 ---@return boolean Could all actions be executed successfully
 M.execute_actions = function(actions)
 	for _, action in ipairs(actions) do
@@ -216,17 +216,17 @@ M.execute_actions = function(actions)
 			or (action.type == "shiftwidth")
 		then
 			local number = tonumber(action.value)
-			vim.o[action.type] = number
+			vim.bo[action.type] = number
 		elseif action.type == "filetype" then
-			vim.o.filetype = action.value
+			vim.bo.filetype = action.value
 		elseif action.type == "foldmethod" then
-			vim.o.foldmethod = action.value
+			vim.bo.foldmethod = action.value
 		else
 			-- all booleans
 			if action.type:sub(1, 2) == "no" then
-				vim.o[action.type:sub(3, #action.type)] = false
+				vim.bo[action.type:sub(3, #action.type)] = false
 			else
-				vim.o[action.type] = true
+				vim.bo[action.type] = true
 			end
 		end
 	end

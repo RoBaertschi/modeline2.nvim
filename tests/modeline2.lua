@@ -135,36 +135,36 @@ describe("utils", function()
 	end)
 
 	it("M#execute_actions test tabstop", function()
-		local old_tabstop = vim.o.tabstop
-		vim.o.tabstop = 2
+		local old_tabstop = vim.bo.tabstop
+		vim.bo.tabstop = 2
 
 		local success = ml2.execute_actions({ { type = "tabstop", value = "4" } })
-		local new_tabstop = vim.o.tabstop
-		vim.o.tabstop = old_tabstop
+		local new_tabstop = vim.bo.tabstop
+		vim.bo.tabstop = old_tabstop
 
 		assert.is_true(success)
 		assert.equals(4, new_tabstop)
 	end)
 
 	it("M#execute_actions true boolean", function()
-		local old_expandtab = vim.o.expandtab
-		vim.o.expandtab = false
+		local old_expandtab = vim.bo.expandtab
+		vim.bo.expandtab = false
 
 		local success = ml2.execute_actions({ { type = "expandtab", value = nil } })
-		local new_expandtab = vim.o.expandtab
-		vim.o.expandtab = old_expandtab
+		local new_expandtab = vim.bo.expandtab
+		vim.bo.expandtab = old_expandtab
 
 		assert.is_true(success)
 		assert.equals(true, new_expandtab)
 	end)
 
 	it("M#execute_actions false boolean", function()
-		local old_expandtab = vim.o.expandtab
-		vim.o.expandtab = true
+		local old_expandtab = vim.bo.expandtab
+		vim.bo.expandtab = true
 
 		local success = ml2.execute_actions({ { type = "noexpandtab", value = nil } })
-		local new_expandtab = vim.o.expandtab
-		vim.o.expandtab = old_expandtab
+		local new_expandtab = vim.bo.expandtab
+		vim.bo.expandtab = old_expandtab
 
 		assert.is_true(success)
 		assert.equals(false, new_expandtab)
