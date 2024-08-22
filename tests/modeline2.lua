@@ -1,4 +1,7 @@
 ---@module "plenary"
+
+local spy = require("luassert.spy")
+local mock = require("luassert.mock")
 describe("utils", function()
 	local ml2 = require("modeline2")
 
@@ -114,5 +117,56 @@ describe("utils", function()
 			{ type = "noexpandtab", value = nil },
 			{ type = "filetype", value = "txt" },
 		}, actions)
+	end)
+
+	it("M#execute_actions custom lua function", function()
+		local called = false
+		ml2.setup({
+			custom_functions = {
+				test = function()
+					called = true
+				end,
+			},
+		})
+
+		local success = ml2.execute_actions({ { type = "lua", value = "test" } })
+		assert.is_true(success)
+		assert.is_true(called, "The custom function has not been called")
+	end)
+
+	it("M#execute_actions test tabstop", function()
+		local old_tabstop = vim.o.tabstop
+		vim.o.tabstop = 2
+
+		local success = ml2.execute_actions({ { type = "tabstop", value = "4" } })
+		local new_tabstop = vim.o.tabstop
+		vim.o.tabstop = old_tabstop
+
+		assert.is_true(success)
+		assert.equals(4, new_tabstop)
+	end)
+
+	it("M#execute_actions true boolean", function()
+		local old_expandtab = vim.o.expandtab
+		vim.o.expandtab = false
+
+		local success = ml2.execute_actions({ { type = "expandtab", value = nil } })
+		local new_expandtab = vim.o.expandtab
+		vim.o.expandtab = old_expandtab
+
+		assert.is_true(success)
+		assert.equals(true, new_expandtab)
+	end)
+
+	it("M#execute_actions false boolean", function()
+		local old_expandtab = vim.o.expandtab
+		vim.o.expandtab = true
+
+		local success = ml2.execute_actions({ { type = "noexpandtab", value = nil } })
+		local new_expandtab = vim.o.expandtab
+		vim.o.expandtab = old_expandtab
+
+		assert.is_true(success)
+		assert.equals(false, new_expandtab)
 	end)
 end)

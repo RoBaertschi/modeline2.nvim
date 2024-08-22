@@ -37,6 +37,19 @@ M.setup = function(config)
 	if config.custom_functions then
 		M.custom_functions = config.custom_functions
 	end
+
+	vim.api.nvim_create_autocmd({ "BufEnter" }, {
+		callback = function(ev)
+			local strings = vim.api.nvim_buf_get_lines(ev.buf, 0, 5, false)
+
+			for i, string in ipairs(strings) do
+				local success, actions = M.get_modeline_string(string)
+				if success then
+					M.execute_actions(actions)
+				end
+			end
+		end,
+	})
 end
 
 ---@type {[string]: ActionType}
@@ -75,7 +88,7 @@ local no_value_actions = {
 ---@alias ActionType "lua"|"filetype"|"textwidth"|"softtabstop"|"tabstop"|"shiftwidth"|"expandtab"|"noexpandtab"|"foldmethod"|"readonly"|"noreadonly"|"rightleft"|"norightleft"
 ---@class Action
 ---@field type ActionType
----@field value string
+---@field value string?
 
 --- parse "key=value "
 ---@param string string
@@ -187,11 +200,34 @@ end
 ---@param actions Action[]
 ---@return boolean Could all actions be executed successfully
 M.execute_actions = function(actions)
-	for i, action in ipairs(actions) do
+	for _, action in ipairs(actions) do
 		if action.type == "lua" then
-		elseif action.type == "tabstop" then
-			vim.opt.tabstop = action.value
+			local function_to_call = M.custom_functions[action.value]
+			if type(function_to_call) == "function" then
+				function_to_call()
+			else
+				print('Could not find custom lua function "' .. action.value .. '"')
+				return false
+			end
+		elseif
+			(action.type == "tabstop")
+			or (action.type == "textwidth")
+			or (action.type == "softtabstop")
+			or (action.type == "shiftwidth")
+		then
+			local number = tonumber(action.value)
+			vim.o[action.type] = number
 		elseif action.type == "filetype" then
+			vim.o.filetype = action.value
+		elseif action.type == "foldmethod" then
+			vim.o.foldmethod = action.value
+		else
+			-- all booleans
+			if action.type:sub(1, 2) == "no" then
+				vim.o[action.type:sub(3, #action.type)] = false
+			else
+				vim.o[action.type] = true
+			end
 		end
 	end
 
