@@ -46,4 +46,73 @@ describe("utils", function()
 		assert.equals(nil, value)
 		assert.equals(4, pos)
 	end)
+
+	it("M#get_modeline_string one key to value", function()
+		local test = "  ml2 lua=test  "
+		local found, actions = ml2.get_modeline_string(test)
+
+		assert.is_true(found)
+		assert.same({ { type = "lua", value = "test" } }, actions)
+	end)
+
+	it("M#get_modeline_string multiple key to values", function()
+		local test = "  ml2 lua=test  ft=vim ts=0"
+		local found, actions = ml2.get_modeline_string(test)
+
+		assert.is_true(found)
+		assert.same({
+			{ type = "lua", value = "test" },
+			{ type = "filetype", value = "vim" },
+			{ type = "tabstop", value = "0" },
+		}, actions)
+	end)
+
+	it("M#get_modeline_string with boolean values", function()
+		local test = "  ml2    noet  "
+		local found, actions = ml2.get_modeline_string(test)
+
+		assert.is_true(found)
+		assert.same({ { type = "noexpandtab", value = nil } }, actions)
+	end)
+
+	it("M#get_modeline_string multiple booleans", function()
+		local test = "  ml2 noet   et noet "
+		local found, actions = ml2.get_modeline_string(test)
+
+		assert.is_true(found)
+		assert.same({
+			{ type = "noexpandtab", value = nil },
+			{ type = "expandtab", value = nil },
+			{ type = "noexpandtab", value = nil },
+		}, actions)
+	end)
+
+	it("M#get_modeline_string mixed", function()
+		local test = "  ml2 noet  ft=vim et noet filetype=txt"
+		local found, actions = ml2.get_modeline_string(test)
+
+		assert.is_true(found)
+		assert.same({
+			{ type = "noexpandtab", value = nil },
+			{ type = "filetype", value = "vim" },
+			{ type = "expandtab", value = nil },
+			{ type = "noexpandtab", value = nil },
+			{ type = "filetype", value = "txt" },
+		}, actions)
+	end)
+
+	it("M#get_modeline_string mixed with different seperator", function()
+		ml2.key_value_seperator = "-"
+		local test = "  ml2 noet  ft-vim et noet filetype-txt"
+		local found, actions = ml2.get_modeline_string(test)
+
+		assert.is_true(found)
+		assert.same({
+			{ type = "noexpandtab", value = nil },
+			{ type = "filetype", value = "vim" },
+			{ type = "expandtab", value = nil },
+			{ type = "noexpandtab", value = nil },
+			{ type = "filetype", value = "txt" },
+		}, actions)
+	end)
 end)
