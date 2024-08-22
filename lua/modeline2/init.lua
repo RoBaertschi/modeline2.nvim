@@ -38,7 +38,7 @@ M.setup = function(config)
 		M.custom_functions = config.custom_functions
 	end
 
-	vim.api.nvim_create_autocmd({ "BufEnter" }, {
+	vim.api.nvim_create_autocmd({ "BufEnter", "VimEnter" }, {
 		callback = function(ev)
 			local strings = vim.api.nvim_buf_get_lines(ev.buf, 0, 5, false)
 
