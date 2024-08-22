@@ -1,6 +1,6 @@
 local M = {
 	key_value_seperator = "=",
-	---@type {[string]: function}
+	---@type {[string]: fun(event: {buf: integer, file: string})}
 	custom_functions = {},
 }
 
@@ -42,10 +42,10 @@ M.setup = function(config)
 		callback = function(ev)
 			local strings = vim.api.nvim_buf_get_lines(ev.buf, 0, 5, false)
 
-			for i, string in ipairs(strings) do
+			for _, string in ipairs(strings) do
 				local success, actions = M.get_modeline_string(string)
 				if success then
-					M.execute_actions(actions)
+					M.execute_actions(actions, ev)
 				end
 			end
 		end,
@@ -131,7 +131,7 @@ end
 ---@param tab table
 ---@return boolean
 local function key_in_table(key, tab)
-	for tab_key, value in pairs(tab) do
+	for tab_key in pairs(tab) do
 		if key == tab_key then
 			return true
 		end
@@ -198,13 +198,14 @@ M.get_modeline_string = function(string)
 end
 
 ---@param actions modeline2.Action[]
+---@param event any
 ---@return boolean Could all actions be executed successfully
-M.execute_actions = function(actions)
+M.execute_actions = function(actions, event)
 	for _, action in ipairs(actions) do
 		if action.type == "lua" then
 			local function_to_call = M.custom_functions[action.value]
 			if type(function_to_call) == "function" then
-				function_to_call()
+				function_to_call({ file = event.file, buf = event.buf })
 			else
 				print('Could not find custom lua function "' .. action.value .. '"')
 				return false
