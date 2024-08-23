@@ -4,12 +4,16 @@ local M = {
 	custom_functions = {},
 }
 
+local function printErr(...)
+	print("[modeline2] Error:", ...)
+end
+
 ---Checks if "string" contains "contains".
 ---@param string string
 ---@param contains string
 ---@return boolean
 ---@return integer
-M.contains = function(string, contains)
+local contains = function(string, contains)
 	for i = 1, #string do
 		local current_sub = string:sub(i, #contains + i - 1)
 
@@ -143,7 +147,7 @@ end
 ---@param string string
 ---@return boolean, modeline2.Action[]
 M.get_modeline_string = function(string)
-	local contained, pos = M.contains(string, "ml2")
+	local contained, pos = contains(string, "ml2")
 	if not contained or pos == -1 then
 		return false, {}
 	end
@@ -177,14 +181,14 @@ M.get_modeline_string = function(string)
 			if key_in_table(key, with_value_actions) then
 				table.insert(found_actions, { type = with_value_actions[key], value = value })
 			else
-				print("[modeline2] Error: could not find key with value action type " .. key)
+				printErr("could not find key with value action type " .. key)
 				return false, {}
 			end
 		else
 			if key_in_table(key, no_value_actions) then
 				table.insert(found_actions, { type = no_value_actions[key], value = nil })
 			else
-				print("[modeline2] Error: could not find boolean action type " .. key)
+				printErr("could not find boolean action type " .. key)
 				return false, {}
 			end
 		end
@@ -207,7 +211,7 @@ M.execute_actions = function(actions, event)
 			if type(function_to_call) == "function" then
 				function_to_call({ file = event.file, buf = event.buf })
 			else
-				print('[modeline2] Error: could not find custom lua function "' .. action.value .. '"')
+				printErr('could not find custom lua function "' .. action.value .. '"')
 				return false
 			end
 		elseif
