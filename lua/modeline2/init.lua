@@ -207,7 +207,7 @@ M.execute_actions = function(actions, event)
 			if type(function_to_call) == "function" then
 				function_to_call({ file = event.file, buf = event.buf })
 			else
-				print('Could not find custom lua function "' .. action.value .. '"')
+				print('[modeline2] Error: could not find custom lua function "' .. action.value .. '"')
 				return false
 			end
 		elseif
